@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FWs Stop Watch</string>
+    <string name="stw_zero">00:00.000</string>
+    <string name="stw_state_ready">READY</string>
+    <string name="stw_state_start">START</string>
+    <string name="stw_state_locked">LOCKED</string>
+</resources>

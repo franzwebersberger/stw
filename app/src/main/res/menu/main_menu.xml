@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Lock View"
+        android:id="@+id/lock"
+        android:visible="true"
+        android:checkable="true"
+        android:enabled="true" />
+    <item android:title="Drop Last"
+        android:id="@+id/drop"
+        android:visible="true"
+        android:enabled="true" />
+    <item android:title="Reset"
+        android:id="@+id/reset"
+        android:checkable="false"
+        android:visible="true"
+        android:enabled="true" />
+</menu>
