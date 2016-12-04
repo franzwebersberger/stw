@@ -6,3 +6,4 @@
 * Implement Confirm-Dialog on reset
 * Change time format to: 00:00.00
 * Finalize package naming
+* Improve UI
