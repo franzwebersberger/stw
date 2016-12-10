@@ -31,13 +31,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView topView;
     private TextView historyView;
 
-    private STWService stwManager;
+    private STWService stwService;
     private Timer timer;
 
     private Handler mainTextViewUpdater = new Handler() {
         public void handleMessage(Message msg) {
-            if (stwManager.isRunning()) {
-                String runtime = stwManager.formatRuntime();
+            if (stwService.isRunning()) {
+                String runtime = stwService.formatRuntime();
                 mainTextView.setText(runtime);
                 mainButton.setText(runtime);
             } else {
@@ -65,10 +65,10 @@ public class MainActivity extends AppCompatActivity {
     private View.OnTouchListener mainButtonTouchListener = new View.OnTouchListener() {
         public boolean onTouch(View v, MotionEvent event) {
             Log.i(LOGTAG, "onTouch()");
-            if (stwManager.isRunning()) {
-                stwManager.stop();
+            if (stwService.isRunning()) {
+                stwService.stop();
                 Log.i(LOGTAG, "stopped");
-                mainTextView.setText(stwManager.formatLastStopTime());
+                mainTextView.setText(stwService.formatLastStopTime());
                 mainButton.setText(R.string.stw_state_ready);
                 Log.i(LOGTAG, "updated:" + mainTextView.getText());
                 stopTimer();
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(LOGTAG, "onCreate()");
 
-        stwManager = STWService.INSTANCE;
+        stwService = STWService.INSTANCE;
         mainButton = (Button) findViewById(R.id.button);
         mainButton.setOnTouchListener(mainButtonTouchListener);
         mainLayout = (LinearLayout) findViewById(R.id.main_layout);
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.i(LOGTAG, "onStart()");
-        if (stwManager.isRunning()) {
+        if (stwService.isRunning()) {
             startTimer();
         }
         updateStats();
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void mainButtonAction(View view) {
         Log.i("button.isRunning", "false");
-        stwManager.start();
+        stwService.start();
         startTimer();
     }
 
@@ -195,14 +195,14 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean dropLast() {
         Log.i(LOGTAG, "drop");
-        stwManager.removeFirst();
+        stwService.removeFirst();
         updateStats();
         return true;
     }
 
     private boolean reset() {
         Log.i(LOGTAG, "reset");
-        stwManager.reset();
+        stwService.reset();
         mainTextView.setText(R.string.stw_zero);
         updateStats();
         return true;
@@ -225,9 +225,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateStats() {
-        summaryView.setText(stwManager.summary());
-        historyView.setText(stwManager.history());
-        topView.setText(stwManager.top());
+        mainTextView.setText(stwService.rank());
+        summaryView.setText(stwService.summary());
+        historyView.setText(stwService.history());
+        topView.setText(stwService.top());
     }
 
 

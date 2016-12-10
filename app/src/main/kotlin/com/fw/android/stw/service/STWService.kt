@@ -54,6 +54,20 @@ object STWService {
         return ""
     }
 
+    fun rank(): String {
+        val sb = StringBuilder()
+        if(stws.isNotEmpty()) {
+            measureTimeMillis {
+                val rank = 1+TreeSet(stws).headSet(stws.first).size
+                sb.append("         ").append(formatTime(stws.first.time)).append("    (").append(rank).append(")")
+            }.log("rank.time")
+        }
+        else {
+            sb.append("00:00.000")
+        }
+        return sb.toString();
+    }
+
     fun top(): String {
         val sb = StringBuilder()
         sb.append("Top\n")
@@ -75,13 +89,13 @@ object STWService {
     fun summary(): String {
         val sb = StringBuilder()
         sb.append("Summary\n")
-        if (stws.size > 0) {
+        if (stws.isNotEmpty()) {
             measureTimeMillis {
                 val mean = stws.fold(0.0, { t: Double, stw: STW -> t + stw.time }) / stws.size
                 val sigma = Math.sqrt(stws.fold(0.0, { t: Double, stw: STW -> t + (stw.time - mean) * (stw.time - mean) }) / stws.size)
-                sb.append("n:\t").append(stws.size).append("\n")
-                sb.append("µ:\t").append(formatTime(mean.toLong())).append("\n")
-                sb.append("\u03C3:\t").append(formatTime(sigma.toLong())).append("\n")
+                sb.append("n: ").append(stws.size).append("   ")
+                sb.append("µ: ").append(formatTime(mean.toLong())).append("   ")
+                sb.append("\u03C3: ").append(formatTime(sigma.toLong())).append("   ")
             }.log("summary.time")
         }
         return sb.toString()

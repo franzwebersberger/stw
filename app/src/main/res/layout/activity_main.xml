@@ -26,12 +26,14 @@
             android:textAlignment="center"
             android:textAllCaps="false"
             android:textStyle="normal|bold"
-            android:fontFamily="sans-serif" />
+            android:fontFamily="sans-serif"
+            android:typeface="normal"
+            android:textSize="56sp" />
 
         <TextView
             android:text="TextView"
             android:layout_width="match_parent"
-            android:layout_height="130dp"
+            android:layout_height="76dp"
             android:id="@+id/summaryView"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textAlignment="center"
