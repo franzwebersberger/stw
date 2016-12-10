@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.fw.fwsstopwatch.MainActivity">
+    tools:context="com.fw.android.stw.activity.MainActivity">
 
     <LinearLayout
         android:orientation="vertical"
@@ -29,43 +29,68 @@
             android:fontFamily="sans-serif" />
 
         <TextView
+            android:text="TextView"
             android:layout_width="match_parent"
-            android:id="@+id/text2"
+            android:layout_height="130dp"
+            android:id="@+id/summaryView"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/text1"
-            android:text="statistics"
-            android:layout_weight="1.04"
             android:textAlignment="center"
-            android:textSize="18sp" />
+            android:textSize="24sp" />
 
-        <ScrollView
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="340dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true">
+            android:layout_height="match_parent">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical" >
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="match_parent">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/text3"
                     android:layout_height="match_parent"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                    android:text="history"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:textAlignment="center"
-                    android:textSize="18sp" />
-            </LinearLayout>
-        </ScrollView>
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:id="@+id/text2"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/text1"
+                        android:text="statistics"
+                        android:layout_weight="1.04"
+                        android:textAlignment="center"
+                        android:textSize="24sp" />
+                </LinearLayout>
+            </ScrollView>
+
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:id="@+id/text3"
+                        android:layout_height="match_parent"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:text="history"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:textAlignment="center"
+                        android:textSize="24sp" />
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
 
     </LinearLayout>
 

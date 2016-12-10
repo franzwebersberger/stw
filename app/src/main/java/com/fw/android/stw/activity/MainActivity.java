@@ -1,10 +1,9 @@
-package com.example.fw.fwsstopwatch;
+package com.fw.android.stw.activity;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,21 +13,25 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.fw.fwsstopwatch.R;
+import com.fw.android.stw.service.STWService;
+
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String LOGTAG = "--fw--";
+    private static final long TIMER_UPDATE_DELAY = 10L;
 
     private boolean locked = false;
     private Button mainButton;
     private LinearLayout mainLayout;
     private TextView mainTextView;
-    private TextView statTextView;
+    private TextView summaryView;
+    private TextView topView;
     private TextView historyView;
 
-    private STWManager stwManager;
+    private STWService stwManager;
     private Timer timer;
 
     private Handler mainTextViewUpdater = new Handler() {
@@ -43,20 +46,35 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private Handler statsViewUpdater = new Handler() {
+        public void handleMessage(Message msg) {
+            Log.i(LOGTAG, "statViewUpdater: msg=" + msg);
+            updateStats();
+        }
+    };
+
+    private Runnable timerRefresher = new Runnable() {
+        @Override
+        public void run() {
+            mainTextViewUpdater.obtainMessage().sendToTarget();
+            mainTextViewUpdater.postDelayed(this, TIMER_UPDATE_DELAY);
+        }
+    };
+
+
     private View.OnTouchListener mainButtonTouchListener = new View.OnTouchListener() {
         public boolean onTouch(View v, MotionEvent event) {
             Log.i(LOGTAG, "onTouch()");
             if (stwManager.isRunning()) {
-                stopTimer();
                 stwManager.stop();
+                Log.i(LOGTAG, "stopped");
                 mainTextView.setText(stwManager.formatLastStopTime());
                 mainButton.setText(R.string.stw_state_ready);
-                updateStats();
+                Log.i(LOGTAG, "updated:" + mainTextView.getText());
+                stopTimer();
                 v.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                statsViewUpdater.obtainMessage().sendToTarget();
                 return true;
-            }
-            else {
-                mainButton.setText(R.string.stw_state_start);
             }
             return false;
         }
@@ -69,14 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(LOGTAG, "onCreate()");
 
-        stwManager = GlobalState.getInstance().getStwManager();
+        stwManager = STWService.INSTANCE;
         mainButton = (Button) findViewById(R.id.button);
         mainButton.setOnTouchListener(mainButtonTouchListener);
         mainLayout = (LinearLayout) findViewById(R.id.main_layout);
         mainTextView = (TextView) findViewById(R.id.text1);
-        statTextView = (TextView) findViewById(R.id.text2);
+        summaryView = (TextView) findViewById(R.id.summaryView);
+        topView = (TextView) findViewById(R.id.text2);
         historyView = (TextView) findViewById(R.id.text3);
-        historyView.setMovementMethod(new ScrollingMovementMethod());
     }
 
     @Override
@@ -162,35 +180,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void mainButtonAction(View view) {
-        Log.i(LOGTAG, "mainButtonAction: view=" + view);
-        if (stwManager.isRunning()) {
-            stopTimer();
-            stwManager.stop();
-            mainTextView.setText(stwManager.formatLastStopTime());
-            mainButton.setText(R.string.stw_state_ready);
-            updateStats();
-        } else {
-            startTimer();
-            stwManager.start();
-        }
+        Log.i("button.isRunning", "false");
+        stwManager.start();
+        startTimer();
     }
 
     private void startTimer() {
-        stopTimer();
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mainTextViewUpdater.obtainMessage().sendToTarget();
-            }
-        }, 0, 10);
+        mainTextViewUpdater.postDelayed(timerRefresher, TIMER_UPDATE_DELAY);
     }
 
     private void stopTimer() {
-        if (timer != null) {
-            timer.cancel();
-            timer.purge();
-        }
+        mainTextViewUpdater.removeCallbacks(timerRefresher);
     }
 
     private boolean dropLast() {
@@ -225,9 +225,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateStats() {
-        Log.i(LOGTAG, "updateStats()");
-        statTextView.setText(stwManager.stats());
+        summaryView.setText(stwManager.summary());
         historyView.setText(stwManager.history());
+        topView.setText(stwManager.top());
     }
+
 
 }
