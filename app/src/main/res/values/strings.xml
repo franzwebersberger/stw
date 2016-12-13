@@ -4,4 +4,7 @@
     <string name="stw_state_ready">READY</string>
     <string name="stw_state_start">START</string>
     <string name="stw_state_locked">LOCKED</string>
+    <string name="stw_stats_summary">Summary</string>
+    <string name="stw_stats_top">Top</string>
+    <string name="stw_stats_history">History</string>
 </resources>

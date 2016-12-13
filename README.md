@@ -4,7 +4,8 @@
 
 ### Known Issues
 
+* UI Feedback onTouch
+* Use kotlin as main language
 * Implement Confirm-Dialog on reset
 * Finalize package naming
-* Improve UI
-* use kotlin as main language
+* Icon

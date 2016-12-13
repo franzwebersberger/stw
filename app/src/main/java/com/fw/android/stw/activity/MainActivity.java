@@ -14,8 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.fw.fwsstopwatch.R;
+import com.fw.android.stw.service.STW;
 import com.fw.android.stw.service.STWService;
+import com.fw.android.stw.service.SummaryStatistics;
+import com.fw.android.stw.service.UtilsKt;
 
+import java.util.Collection;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mainButton;
     private LinearLayout mainLayout;
     private TextView mainTextView;
+    private TextView rankTextView;
     private TextView summaryView;
     private TextView topView;
     private TextView historyView;
@@ -37,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private Handler mainTextViewUpdater = new Handler() {
         public void handleMessage(Message msg) {
             if (stwService.isRunning()) {
-                String runtime = stwService.formatRuntime();
+                String runtime = formatTime(stwService.runtime());
                 mainTextView.setText(runtime);
+                rankTextView.setText(formatRank(stwService.rank()));
                 mainButton.setText(runtime);
             } else {
                 mainButton.setText(getString(R.string.stw_state_ready));
@@ -68,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             if (stwService.isRunning()) {
                 stwService.stop();
                 Log.i(LOGTAG, "stopped");
-                mainTextView.setText(stwService.formatLastStopTime());
+                mainTextView.setText(formatTime(stwService.runtime()));
                 mainButton.setText(R.string.stw_state_ready);
                 Log.i(LOGTAG, "updated:" + mainTextView.getText());
                 stopTimer();
@@ -91,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         mainButton = (Button) findViewById(R.id.button);
         mainButton.setOnTouchListener(mainButtonTouchListener);
         mainLayout = (LinearLayout) findViewById(R.id.main_layout);
+        rankTextView = (TextView) findViewById(R.id.right_pad);
         mainTextView = (TextView) findViewById(R.id.text1);
         summaryView = (TextView) findViewById(R.id.summaryView);
         topView = (TextView) findViewById(R.id.text2);
@@ -225,10 +232,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateStats() {
-        mainTextView.setText(stwService.rank());
-        summaryView.setText(stwService.summary());
-        historyView.setText(stwService.history());
-        topView.setText(stwService.top());
+        mainTextView.setText(formatTime(stwService.runtime()));
+        rankTextView.setText(formatRank(stwService.rank()));
+        summaryView.setText(formatSummary(stwService.summary()));
+        historyView.setText(formatHistory(stwService.getHistory()));
+        topView.setText(formatTop(stwService.getTop()));
+    }
+
+    private String formatTime(long time) {
+        return UtilsKt.formatTime(time);
+    }
+
+    private String formatRank(int rank) {
+        return "(" + rank + ".)";
+    }
+
+    private String formatSummary(SummaryStatistics summary) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.stw_stats_summary)).append("\n");
+        sb.append("n: ").append(summary.getN()).append("   ");
+        sb.append("µ: ").append(UtilsKt.formatTime((long)summary.getMean())).append("   ");
+        sb.append("σ: ").append(UtilsKt.formatTime((long)summary.getSigma())).append("   ");
+        return sb.toString();
+    }
+
+    private String formatTop(Collection<STW> top) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.stw_stats_top)).append("\n");
+        int i = 1;
+        for (STW stw: top) {
+            sb.append(i++).append(".\t").append(stw.getFmt()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String formatHistory(Collection<STW> history) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.stw_stats_history)).append("\n");
+        for (STW stw: history) {
+            sb.append(stw.getFmt()).append("\n");
+        }
+        return sb.toString();
     }
 
 

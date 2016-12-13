@@ -9,7 +9,7 @@ data class STW(val start: Long, val time: Long) : Comparable<STW> {
     override fun compareTo(other: STW): Int {
         val dTime = time - other.time
         val dStart = start - other.start
-        return if (dTime == 0L) dStart.toInt() else dTime.toInt()
+        return if (dTime != 0L) dTime.toInt() else dStart.toInt()
     }
 
 }

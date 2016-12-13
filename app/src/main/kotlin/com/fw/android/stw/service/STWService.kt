@@ -1,19 +1,22 @@
 package com.fw.android.stw.service
 
-import android.util.Log
 import java.util.*
-import kotlin.system.measureTimeMillis
 
 /**
  * Created by fw on 07.12.16.
  */
 object STWService {
-    private val LOGTAG = "-- STWService --"
 
     private var running = false
     private var start: Long = 0
 
-    private val stws: Deque<STW> = LinkedList()
+    private val stws: LinkedList<STW> = LinkedList()
+    val history: List<STW> = stws
+
+    private val sorted: TreeSet<STW> = TreeSet<STW>()
+    val top: Set<STW> = sorted
+
+    fun isRunning() = running
 
     fun start() {
         start = System.currentTimeMillis()
@@ -24,81 +27,42 @@ object STWService {
         if (running) {
             running = false
             stws.addFirst(STW(start, System.currentTimeMillis() - start))
+            sorted.add(stws.first)
         }
     }
 
     fun reset() {
         stws.clear()
+        sorted.clear()
     }
 
     fun removeFirst() {
-        if (!stws.isEmpty()) {
-            stws.removeFirst()
-        }
-    }
-
-    fun isRunning() = running
-
-    fun formatRuntime(): String {
-        if (running) {
-            val time = System.currentTimeMillis() - start
-            return formatTime(time)
-        }
-        return ""
-    }
-
-    fun formatLastStopTime(): String {
-        if (!stws.isEmpty()) {
-            return formatTime(stws.first.time)
-        }
-        return ""
-    }
-
-    fun rank(): String {
-        val sb = StringBuilder()
-        if(stws.isNotEmpty()) {
-            measureTimeMillis {
-                val rank = 1+TreeSet(stws).headSet(stws.first).size
-                sb.append("         ").append(formatTime(stws.first.time)).append("    (").append(rank).append(")")
-            }.log("rank.time")
-        }
-        else {
-            sb.append("00:00.000")
-        }
-        return sb.toString();
-    }
-
-    fun top(): String {
-        val sb = StringBuilder()
-        sb.append("Top\n")
-        measureTimeMillis {
-            TreeSet(stws).forEachIndexed { i, stw -> sb.append(i + 1).append(".\t").append(stw.fmt).append("\n") }
-        }.log("top.time")
-        return sb.toString()
-    }
-
-    fun history(): String {
-        val sb = StringBuilder()
-        sb.append("History\n")
-        measureTimeMillis {
-            stws.forEachIndexed { i, stw -> sb.append(stws.size-i).append(".\t").append(stw.fmt).append("\n") }
-        }.log("history.time")
-        return sb.toString()
-    }
-
-    fun summary(): String {
-        val sb = StringBuilder()
-        sb.append("Summary\n")
         if (stws.isNotEmpty()) {
-            measureTimeMillis {
-                val mean = stws.fold(0.0, { t: Double, stw: STW -> t + stw.time }) / stws.size
-                val sigma = Math.sqrt(stws.fold(0.0, { t: Double, stw: STW -> t + (stw.time - mean) * (stw.time - mean) }) / stws.size)
-                sb.append("n: ").append(stws.size).append("   ")
-                sb.append("µ: ").append(formatTime(mean.toLong())).append("   ")
-                sb.append("\u03C3: ").append(formatTime(sigma.toLong())).append("   ")
-            }.log("summary.time")
+            stws.removeFirst()
+            sorted.clear()
+            sorted.addAll(stws)
         }
-        return sb.toString()
+    }
+
+    fun runtime(): Long =
+            if (running) System.currentTimeMillis() - start
+            else if (stws.isNotEmpty()) stws.first.time
+            else 0L
+
+    fun rank(): Int =
+            if (running)
+                sorted.headSet(STW(start, System.currentTimeMillis() - start)).size + 1
+            else if (stws.isNotEmpty()) sorted.headSet(stws.first).size + 1
+            else 0
+
+    fun summary(): SummaryStatistics {
+        if (stws.isNotEmpty()) {
+            val mean = stws.fold(0.0, { t: Double, stw: STW -> t + stw.time }) / stws.size
+            val sigma = Math.sqrt(stws.fold(0.0, { t: Double, stw: STW -> t + (stw.time - mean) * (stw.time - mean) }) / stws.size)
+            return SummaryStatistics(stws.size, mean, sigma)
+        } else {
+            return SummaryStatistics(0, 0.0, 0.0)
+        }
     }
 
 }
