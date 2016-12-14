@@ -225,7 +225,7 @@ class MainActivity : AppCompatActivity() {
     private fun formatTop(top: Collection<STW>): String {
         val sb = StringBuilder()
         sb.append(getString(R.string.stw_stats_top)).append("\n")
-        top.forEachIndexed { i, stw -> sb.append(i + 1).append("\t").append(stw.fmt).append("\n") }
+        top.forEachIndexed { i, stw -> sb.append(i + 1).append(".\t").append(stw.fmt).append("\n") }
         return sb.toString()
     }
 
