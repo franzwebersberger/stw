@@ -4,6 +4,5 @@
 
 ### Known Issues
 
-* UI Feedback onTouch
 * Implement Confirm-Dialog on reset
 * Icon

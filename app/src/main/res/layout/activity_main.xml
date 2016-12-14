@@ -27,7 +27,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/left_pad"
                 android:layout_weight="0.15"
-                android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:textSize="30sp"
+                android:textStyle="normal|bold"
+                android:textAlignment="viewEnd" />
 
             <TextView
                 android:layout_width="0dp"

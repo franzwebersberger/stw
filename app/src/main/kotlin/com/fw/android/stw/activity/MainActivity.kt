@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private val TIMER_UPDATE_DELAY = 10L
 
     private var locked = false
+    private var ready = !STWService.isRunning()
     private var mainButton: Button? = null
     private var mainLayout: LinearLayout? = null
     private var mainTextView: TextView? = null
@@ -35,11 +36,11 @@ class MainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             if (STWService.isRunning()) {
                 val runtime = formatTime(STWService.runtime())
-                mainTextView?.setText(runtime)
-                rankTextView?.setText(formatRank(STWService.rank()))
-                mainButton?.setText(runtime)
+                mainTextView?.text = runtime
+                rankTextView?.text = formatRank(STWService.rank())
+                mainButton?.text = runtime
             } else {
-                mainButton?.setText(getString(R.string.stw_state_ready))
+                mainButton?.setText(R.string.stw_state_ready)
             }
         }
     }
@@ -59,20 +60,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mainButtonTouchListener = View.OnTouchListener { v, event ->
-        Log.i(LOGTAG, "onTouch()")
+        Log.i(LOGTAG, "onTouch() ready=" + ready)
         if (STWService.isRunning()) {
             STWService.stop()
-            Log.i(LOGTAG, "stopped")
-            mainTextView?.setText(formatTime(STWService.runtime()))
-            mainButton?.setText(R.string.stw_state_ready)
-            Log.i(LOGTAG, "updated:" + mainTextView?.getText())
             stopTimer()
-            v.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+            Log.i(LOGTAG, "stopped")
+            mainTextView?.text = formatTime(STWService.runtime())
+            rankTextView?.text = formatRank(STWService.rank())
+            mainButton?.setText(R.string.stw_state_ready)
             statsViewUpdater.obtainMessage().sendToTarget()
-            return@OnTouchListener true
+        }
+        if (ready) {
+            mainTextView?.setText(R.string.stw_zero)
+            mainButton?.setText(R.string.stw_zero)
+            rankTextView?.text = formatRank(0)
         }
         false
     }
+
+    fun mainButtonAction(view: View) {
+        Log.i(LOGTAG, "mainButtonAction ready=" + ready)
+        if (ready) {
+            STWService.start()
+            startTimer()
+            ready = false
+        }
+        else {
+            ready = true
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,12 +174,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(LOGTAG, "onDestroy()")
-    }
-
-    fun mainButtonAction(view: View) {
-        Log.i("button.isRunning", "false")
-        STWService.start()
-        startTimer()
     }
 
     private fun startTimer() {
