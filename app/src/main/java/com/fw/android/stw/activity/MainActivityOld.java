@@ -13,16 +13,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.fw.fwsstopwatch.R;
+import com.fw.android.stw.R;
 import com.fw.android.stw.service.STW;
 import com.fw.android.stw.service.STWService;
 import com.fw.android.stw.service.SummaryStatistics;
 import com.fw.android.stw.service.UtilsKt;
 
 import java.util.Collection;
-import java.util.Timer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivityOld extends AppCompatActivity {
 
     private static final String LOGTAG = "--fw--";
     private static final long TIMER_UPDATE_DELAY = 10L;
@@ -37,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView historyView;
 
     private STWService stwService;
-    private Timer timer;
 
     private Handler mainTextViewUpdater = new Handler() {
         public void handleMessage(Message msg) {
