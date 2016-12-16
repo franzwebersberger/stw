@@ -1,6 +1,7 @@
 package com.fw.android.stw.activity
 
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Message
 import android.support.v7.app.AppCompatActivity
@@ -11,6 +12,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.fw.android.stw.R
 import com.fw.android.stw.service.STW
 import com.fw.android.stw.service.STWService
@@ -84,8 +86,7 @@ class MainActivity : AppCompatActivity() {
             STWService.start()
             startTimer()
             ready = false
-        }
-        else {
+        } else {
             ready = true
         }
     }
@@ -123,6 +124,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         Log.i(LOGTAG, "onOptionsItemSelected")
         when (item.itemId) {
+            R.id.export -> return exportData()
             R.id.reset -> return reset()
             R.id.drop -> return dropLast()
             R.id.lock -> {
@@ -188,6 +190,17 @@ class MainActivity : AppCompatActivity() {
         Log.i(LOGTAG, "drop")
         STWService.removeFirst()
         updateStats()
+        return true
+    }
+
+    private fun exportData(): Boolean {
+        Log.i(LOGTAG, "export")
+        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        Log.i(LOGTAG, "dir=" + dir.absolutePath)
+        val mkdirs = dir.mkdirs()
+        val message = STWService.exportHistory(dir)
+        val toast = Toast.makeText(applicationContext, message, Toast.LENGTH_LONG)
+        toast.show()
         return true
     }
 

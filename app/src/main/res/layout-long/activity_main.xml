@@ -52,7 +52,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1"
                 android:textStyle="normal|bold"
                 android:textAlignment="center"
-                android:textSize="30sp" />
+                android:textSize="24sp" />
         </LinearLayout>
 
         <TextView

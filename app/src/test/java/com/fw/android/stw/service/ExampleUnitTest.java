@@ -5,6 +5,9 @@ import com.fw.android.stw.service.STWService;
 
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.junit.Assert.*;
 
 /**
@@ -32,4 +35,10 @@ public class ExampleUnitTest {
         System.out.println(stw.getFmt());
     }
 
+    @Test
+    public void testDateFormat() {
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd-HHmmss");
+        String fname = "fws-stw-" + fmt.format(new Date()) + ".csv";
+        System.out.println(fname);
+    }
 }

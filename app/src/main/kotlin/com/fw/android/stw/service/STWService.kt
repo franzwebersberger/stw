@@ -1,5 +1,7 @@
 package com.fw.android.stw.service
 
+import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -41,6 +43,23 @@ object STWService {
             stws.removeFirst()
             sorted.clear()
             sorted.addAll(stws)
+        }
+    }
+
+    fun exportHistory(dir: File): String {
+        return try {
+            val file = File(dir, "fws-stw-" + SimpleDateFormat("yyyyMMdd-HHmmss").format(Date()) + ".csv")
+            file.bufferedWriter().use { out ->
+                out.write("start (timestamp),time (ms)\n")
+                history.forEach {
+                    out.write("${it.start},${it.time}\n")
+                }
+            }
+            "data saved to " + file.absolutePath
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            "error saving data in " + dir.absolutePath
         }
     }
 
