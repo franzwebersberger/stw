@@ -13,9 +13,8 @@ fun formatDate(start: Long) = FDATE.format(Date(start))
 
 fun formatTime(time: Long) = FTIME.format(Date(time))
 
-fun formatDateAndTime(start: Long, time: Long) = formatDate(start) + "\t" + formatTime(time)
+fun formatDateAndTime(start: Long, time: Long) = formatDate(start) + "  " + formatTime(time)
 
-fun formatSTW(stw: STW) = formatDate(stw.start) + "\t" + formatTime(stw.time)
 
 
 
