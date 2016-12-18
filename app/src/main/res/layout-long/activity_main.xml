@@ -28,7 +28,7 @@
                 android:id="@+id/left_pad"
                 android:layout_weight="0.15"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                android:textSize="30sp"
+                android:textSize="18sp"
                 android:textStyle="normal|bold"
                 android:textAlignment="viewEnd" />
 
@@ -52,7 +52,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1"
                 android:textStyle="normal|bold"
                 android:textAlignment="center"
-                android:textSize="24sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <TextView
@@ -62,7 +62,7 @@
             android:id="@+id/summaryView"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textAlignment="center"
-            android:textSize="18sp" />
+            android:textSize="14sp" />
 
         <LinearLayout
             android:orientation="horizontal"

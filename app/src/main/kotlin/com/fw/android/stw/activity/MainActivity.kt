@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var mainButton: Button? = null
     private var mainLayout: LinearLayout? = null
     private var mainTextView: TextView? = null
+    private var countTextView: TextView? = null
     private var rankTextView: TextView? = null
     private var summaryView: TextView? = null
     private var topView: TextView? = null
@@ -68,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             stopTimer()
             Log.i(LOGTAG, "stopped")
             mainTextView?.text = formatTime(STWService.runtime())
+            countTextView?.text = formatCount(STWService.currentCount())
             rankTextView?.text = formatRank(STWService.rank())
             mainButton?.setText(R.string.stw_state_ready)
             statsViewUpdater.obtainMessage().sendToTarget()
@@ -75,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         if (ready) {
             mainTextView?.setText(R.string.stw_zero)
             mainButton?.setText(R.string.stw_zero)
+            countTextView?.text = formatCount(1 + STWService.currentCount())
             rankTextView?.text = formatRank(0)
         }
         false
@@ -101,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         mainButton = findViewById(R.id.button) as Button
         (mainButton as Button).setOnTouchListener(mainButtonTouchListener)
         mainLayout = findViewById(R.id.main_layout) as LinearLayout
+        countTextView = findViewById(R.id.left_pad) as TextView
         rankTextView = findViewById(R.id.right_pad) as TextView
         mainTextView = findViewById(R.id.text1) as TextView
         summaryView = findViewById(R.id.summaryView) as TextView
@@ -229,13 +233,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateStats() {
         mainTextView?.setText(formatTime(STWService.runtime()))
+        countTextView?.setText(formatCount(STWService.currentCount()))
         rankTextView?.setText(formatRank(STWService.rank()))
         summaryView?.setText(formatSummary(STWService.summary()))
         historyView?.setText(formatHistory(STWService.history))
         topView?.setText(formatTop(STWService.top))
     }
 
-    private fun formatRank(rank: Int) = "$rank."
+    private fun formatCount(n: Int) = "$n."
+
+    private fun formatRank(rank: Int) = "($rank)"
 
     private fun formatSummary(summary: SummaryStatistics): String {
         val sb = StringBuilder()

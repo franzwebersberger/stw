@@ -20,6 +20,8 @@ object STWService {
 
     fun isRunning() = running
 
+    fun currentCount() = if (running) 1 + stws.size else stws.size
+
     fun start() {
         start = System.currentTimeMillis()
         running = true
