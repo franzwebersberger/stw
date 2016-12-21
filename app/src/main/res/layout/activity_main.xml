@@ -82,15 +82,11 @@
                     android:orientation="vertical" >
 
                     <TextView
-                        android:layout_width="match_parent"
                         android:id="@+id/text2"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
-                        android:layout_below="@+id/text1"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                         android:text="Top"
-                        android:layout_weight="1.04"
                         android:textAlignment="center"
                         android:textSize="24sp" />
                 </LinearLayout>
@@ -107,14 +103,11 @@
                     android:orientation="vertical" >
 
                     <TextView
-                        android:layout_width="match_parent"
                         android:id="@+id/text3"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:text="history"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentLeft="true"
-                        android:layout_alignParentStart="true"
+                        android:text="History"
                         android:textAlignment="center"
                         android:textSize="24sp" />
                 </LinearLayout>
@@ -130,7 +123,6 @@
         android:id="@+id/button"
         android:background="@android:color/transparent"
         android:visibility="visible"
-        android:onClick="mainButtonAction"
         android:textAppearance="@style/TextAppearance.AppCompat.Display4"
         android:fontFamily="sans-serif-smallcaps"
         android:textStyle="normal|bold"

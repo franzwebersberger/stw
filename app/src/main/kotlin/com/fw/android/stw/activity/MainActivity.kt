@@ -8,24 +8,30 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.fw.android.stw.R
+import com.fw.android.stw.activity.STWActivityColors.COLOR_IDLE
+import com.fw.android.stw.activity.STWActivityColors.COLOR_READY
+import com.fw.android.stw.activity.STWActivityColors.COLOR_RUNNING
+import com.fw.android.stw.activity.STWActivityState.*
 import com.fw.android.stw.service.STW
 import com.fw.android.stw.service.STWService
 import com.fw.android.stw.service.SummaryStatistics
 import com.fw.android.stw.service.formatTime
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private val LOGTAG = "-- MainActivity --"
     private val TIMER_UPDATE_DELAY = 10L
 
     private var locked = false
-    private var ready = !STWService.isRunning()
+    private var state = IDLE
     private var mainButton: Button? = null
     private var mainLayout: LinearLayout? = null
     private var mainTextView: TextView? = null
@@ -63,37 +69,61 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mainButtonTouchListener = View.OnTouchListener { v, event ->
-        Log.i(LOGTAG, "onTouch() ready=" + ready)
-        if (STWService.isRunning()) {
-            STWService.stop()
-            stopTimer()
-            Log.i(LOGTAG, "stopped")
-            mainTextView?.text = formatTime(STWService.runtime())
-            countTextView?.text = formatCount(STWService.currentCount())
-            rankTextView?.text = formatRank(STWService.rank())
-            mainButton?.setText(R.string.stw_state_ready)
-            statsViewUpdater.obtainMessage().sendToTarget()
+        Log.i(LOGTAG, "onTouch() event=" + event)
+        return@OnTouchListener when (event.action) {
+            MotionEvent.ACTION_DOWN -> mainButtonDown(v)
+            MotionEvent.ACTION_UP -> mainButtonUp(v)
+            else -> false
         }
-        if (ready) {
+    }
+
+    private fun mainButtonDown(view: View): Boolean = when (state) {
+        IDLE -> {
+            mainLayout?.setBackgroundColor(COLOR_READY)
             mainTextView?.setText(R.string.stw_zero)
             mainButton?.setText(R.string.stw_zero)
             countTextView?.text = formatCount(1 + STWService.currentCount())
-            rankTextView?.text = formatRank(0)
+            rankTextView?.text = formatRank(1)
+            state = READY
+            true
         }
-        false
+        READY -> {
+            state = READY
+            true
+        }
+        RUNNING -> {
+            STWService.stop()
+            stopTimer()
+            view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+            mainLayout?.setBackgroundColor(COLOR_IDLE)
+            mainTextView?.text = formatTime(STWService.runtime())
+            countTextView?.text = formatCount(STWService.currentCount())
+            rankTextView?.text = formatRank(STWService.rank())
+            mainButton?.text = formatTime(STWService.runtime())
+            statsViewUpdater.obtainMessage().sendToTarget()
+            state = IDLE
+            true
+        }
     }
 
-    fun mainButtonAction(view: View) {
-        Log.i(LOGTAG, "mainButtonAction ready=" + ready)
-        if (ready) {
+    private fun mainButtonUp(view: View): Boolean = when (state) {
+        IDLE -> {
+            state = IDLE
+            true
+        }
+        READY -> {
             STWService.start()
             startTimer()
-            ready = false
-        } else {
-            ready = true
+            view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+            mainLayout?.setBackgroundColor(COLOR_RUNNING)
+            state = RUNNING
+            true
+        }
+        RUNNING -> {
+            state = RUNNING
+            false
         }
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +131,7 @@ class MainActivity : AppCompatActivity() {
 
         Log.i(LOGTAG, "onCreate")
 
+        state = if (STWService.isRunning()) RUNNING else IDLE
         mainButton = findViewById(R.id.button) as Button
         (mainButton as Button).setOnTouchListener(mainButtonTouchListener)
         mainLayout = findViewById(R.id.main_layout) as LinearLayout
@@ -236,8 +267,10 @@ class MainActivity : AppCompatActivity() {
         countTextView?.setText(formatCount(STWService.currentCount()))
         rankTextView?.setText(formatRank(STWService.rank()))
         summaryView?.setText(formatSummary(STWService.summary()))
-        historyView?.setText(formatHistory(STWService.history))
-        topView?.setText(formatTop(STWService.top))
+        val h = formatHistory(STWService.history)
+        historyView?.setText(h.substring(0..Math.min(h.length - 1, 20000)))
+        val t = formatTop(STWService.top)
+        topView?.setText(t.substring(0..Math.min(t.length - 1, 20000)))
     }
 
     private fun formatCount(n: Int) = "$n."
