@@ -1,5 +1,5 @@
 ### FWs Stopwatch
-![Screenshot](screenshot.png "FWs Android Stopwatch")
+![Screenshot](Screenshot.png "FWs Android Stopwatch")
 
 
 ### Known Issues
