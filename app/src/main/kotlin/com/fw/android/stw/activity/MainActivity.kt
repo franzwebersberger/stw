@@ -1,5 +1,6 @@
 package com.fw.android.stw.activity
 
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -15,23 +16,26 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.fw.android.stw.R
-import com.fw.android.stw.activity.STWActivityColors.COLOR_IDLE
-import com.fw.android.stw.activity.STWActivityColors.COLOR_READY
-import com.fw.android.stw.activity.STWActivityColors.COLOR_RUNNING
-import com.fw.android.stw.activity.STWActivityState.*
+import com.fw.android.stw.activity.MainActivity.ButtonState.*
 import com.fw.android.stw.service.STW
 import com.fw.android.stw.service.STWService
 import com.fw.android.stw.service.SummaryStatistics
 import com.fw.android.stw.service.formatTime
+import com.fw.generic.api.statemachine.StateMachine
+import com.fw.generic.api.statemachine.StateMachine.T
 
-@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
-    private val LOGTAG = "-- MainActivity --"
+    enum class ButtonState {IDLE, READY, RUNNING }
+
+    private val LOG_TAG = "-- MainActivity --"
     private val TIMER_UPDATE_DELAY = 10L
 
+    private val COLOR_IDLE = Color.argb(0, 0, 0, 0)
+    private val COLOR_READY = Color.argb(128, 255, 100, 0)
+    private val COLOR_RUNNING = Color.argb(100, 255, 255, 0)
+
     private var locked = false
-    private var state = IDLE
     private var mainButton: Button? = null
     private var mainLayout: LinearLayout? = null
     private var mainTextView: TextView? = null
@@ -41,6 +45,40 @@ class MainActivity : AppCompatActivity() {
     private var topView: TextView? = null
     private var historyView: TextView? = null
 
+    private val buttonSTM = StateMachine<ButtonState, Int, View>(
+            IDLE,
+            T(IDLE, MotionEvent.ACTION_DOWN, READY, { view ->
+                Log.i(LOG_TAG, "buttonSTM: IDLE -> READY")
+                mainLayout?.setBackgroundColor(COLOR_READY)
+                mainTextView?.setText(R.string.stw_zero)
+                mainButton?.setText(R.string.stw_zero)
+                countTextView?.text = formatCount(1 + STWService.currentCount())
+                rankTextView?.text = formatRank(1)
+            }),
+            T(READY, MotionEvent.ACTION_UP, RUNNING, { view ->
+                Log.i(LOG_TAG, "buttonSTM: READY -> RUNNING")
+                STWService.start()
+                startTimer()
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+                mainLayout?.setBackgroundColor(COLOR_RUNNING)
+            }),
+            T(RUNNING, MotionEvent.ACTION_DOWN, IDLE, { view ->
+                Log.i(LOG_TAG, "buttonSTM: RUNNING -> IDLE")
+                STWService.stop()
+                stopTimer()
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+                mainLayout?.setBackgroundColor(COLOR_IDLE)
+                mainTextView?.text = formatTime(STWService.runtime())
+                countTextView?.text = formatCount(STWService.currentCount())
+                rankTextView?.text = formatRank(STWService.rank())
+                mainButton?.text = formatTime(STWService.runtime())
+                statsViewUpdater.obtainMessage().sendToTarget()
+            }))
+
+    private val mainButtonTouchListener = View.OnTouchListener { v, event ->
+        return@OnTouchListener buttonSTM.handleEvent(event.action, v)
+    }
+
     private val mainTextViewUpdater = object : Handler() {
         override fun handleMessage(msg: Message) {
             if (STWService.isRunning()) {
@@ -48,15 +86,13 @@ class MainActivity : AppCompatActivity() {
                 mainTextView?.text = runtime
                 rankTextView?.text = formatRank(STWService.rank())
                 mainButton?.text = runtime
-            } else {
-                mainButton?.setText(R.string.stw_state_ready)
             }
         }
     }
 
     private val statsViewUpdater = object : Handler() {
         override fun handleMessage(msg: Message) {
-            Log.i(LOGTAG, "statViewUpdater: msg=" + msg)
+            Log.i(LOG_TAG, "statViewUpdater: msg=" + msg)
             updateStats()
         }
     }
@@ -68,70 +104,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val mainButtonTouchListener = View.OnTouchListener { v, event ->
-        Log.i(LOGTAG, "onTouch() event=" + event)
-        return@OnTouchListener when (event.action) {
-            MotionEvent.ACTION_DOWN -> mainButtonDown(v)
-            MotionEvent.ACTION_UP -> mainButtonUp(v)
-            else -> false
-        }
-    }
-
-    private fun mainButtonDown(view: View): Boolean = when (state) {
-        IDLE -> {
-            mainLayout?.setBackgroundColor(COLOR_READY)
-            mainTextView?.setText(R.string.stw_zero)
-            mainButton?.setText(R.string.stw_zero)
-            countTextView?.text = formatCount(1 + STWService.currentCount())
-            rankTextView?.text = formatRank(1)
-            state = READY
-            true
-        }
-        READY -> {
-            state = READY
-            true
-        }
-        RUNNING -> {
-            STWService.stop()
-            stopTimer()
-            view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
-            mainLayout?.setBackgroundColor(COLOR_IDLE)
-            mainTextView?.text = formatTime(STWService.runtime())
-            countTextView?.text = formatCount(STWService.currentCount())
-            rankTextView?.text = formatRank(STWService.rank())
-            mainButton?.text = formatTime(STWService.runtime())
-            statsViewUpdater.obtainMessage().sendToTarget()
-            state = IDLE
-            true
-        }
-    }
-
-    private fun mainButtonUp(view: View): Boolean = when (state) {
-        IDLE -> {
-            state = IDLE
-            true
-        }
-        READY -> {
-            STWService.start()
-            startTimer()
-            view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
-            mainLayout?.setBackgroundColor(COLOR_RUNNING)
-            state = RUNNING
-            true
-        }
-        RUNNING -> {
-            state = RUNNING
-            false
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.i(LOGTAG, "onCreate")
+        Log.i(LOG_TAG, "onCreate")
 
-        state = if (STWService.isRunning()) RUNNING else IDLE
         mainButton = findViewById(R.id.button) as Button
         (mainButton as Button).setOnTouchListener(mainButtonTouchListener)
         mainLayout = findViewById(R.id.main_layout) as LinearLayout
@@ -145,19 +123,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-        Log.i(LOGTAG, "onCreateOptionsMenu()")
+        Log.i(LOG_TAG, "onCreateOptionsMenu()")
         return true
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         super.onPrepareOptionsMenu(menu)
-        Log.i(LOGTAG, "lockMenuItem=" + menu.findItem(R.id.lock))
+        Log.i(LOG_TAG, "lockMenuItem=" + menu.findItem(R.id.lock))
         menu.findItem(R.id.lock).isChecked = locked
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Log.i(LOGTAG, "onOptionsItemSelected")
+        Log.i(LOG_TAG, "onOptionsItemSelected")
         when (item.itemId) {
             R.id.export -> return exportData()
             R.id.reset -> return reset()
@@ -173,44 +151,46 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Log.i(LOGTAG, "onStart()")
+        Log.i(LOG_TAG, "onStart()")
         if (STWService.isRunning()) {
             startTimer()
+            mainLayout?.setBackgroundColor(COLOR_RUNNING)
+            buttonSTM.state = RUNNING
         }
         updateStats()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        Log.i(LOGTAG, "onRestoreInstanceState()")
+        Log.i(LOG_TAG, "onRestoreInstanceState()")
         setLockState(savedInstanceState.getBoolean("locked"))
     }
 
     override fun onResume() {
         super.onResume()
-        Log.i(LOGTAG, "onResume()")
+        Log.i(LOG_TAG, "onResume()")
     }
 
     override fun onPause() {
         super.onPause()
-        Log.i(LOGTAG, "onPause()")
+        Log.i(LOG_TAG, "onPause()")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        Log.i(LOGTAG, "onSaveInstanceState()")
+        Log.i(LOG_TAG, "onSaveInstanceState()")
         outState.putBoolean("locked", locked)
     }
 
     override fun onStop() {
         super.onStop()
-        Log.i(LOGTAG, "onStop()")
+        Log.i(LOG_TAG, "onStop()")
         stopTimer()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.i(LOGTAG, "onDestroy()")
+        Log.i(LOG_TAG, "onDestroy()")
     }
 
     private fun startTimer() {
@@ -222,17 +202,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dropLast(): Boolean {
-        Log.i(LOGTAG, "drop")
+        Log.i(LOG_TAG, "drop")
         STWService.removeFirst()
+        mainButton?.setText(R.string.stw_state_ready)
         updateStats()
         return true
     }
 
     private fun exportData(): Boolean {
-        Log.i(LOGTAG, "export")
+        Log.i(LOG_TAG, "export")
         val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        Log.i(LOGTAG, "dir=" + dir.absolutePath)
-        val mkdirs = dir.mkdirs()
+        Log.i(LOG_TAG, "dir=" + dir.absolutePath)
+        dir.mkdirs()
         val message = STWService.exportHistory(dir)
         val toast = Toast.makeText(applicationContext, message, Toast.LENGTH_LONG)
         toast.show()
@@ -240,16 +221,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reset(): Boolean {
-        Log.i(LOGTAG, "reset")
+        Log.i(LOG_TAG, "reset")
         STWService.reset()
-        mainTextView?.setText(R.string.stw_zero)
+        mainButton?.setText(R.string.stw_state_ready)
         updateStats()
         return true
     }
 
     private fun setLockState(lock: Boolean) {
         this.locked = lock
-        Log.i(LOGTAG, "lock")
+        Log.i(LOG_TAG, "setLockState")
         mainButton?.setEnabled(!lock)
         if (lock) {
             mainButton?.setText(R.string.stw_state_locked)

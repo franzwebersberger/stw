@@ -2,11 +2,15 @@ package com.fw.android.stw.service;
 
 import com.fw.android.stw.service.STW;
 import com.fw.android.stw.service.STWService;
+import com.fw.generic.api.statemachine.StateMachine;
 
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import static org.junit.Assert.*;
 
@@ -41,4 +45,5 @@ public class ExampleUnitTest {
         String fname = "fws-stw-" + fmt.format(new Date()) + ".csv";
         System.out.println(fname);
     }
+
 }

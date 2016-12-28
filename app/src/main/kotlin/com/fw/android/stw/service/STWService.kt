@@ -2,7 +2,9 @@ package com.fw.android.stw.service
 
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
+import java.util.TreeSet
 
 /**
  * Created by fw on 07.12.16.
@@ -58,8 +60,7 @@ object STWService {
                 }
             }
             "data saved to " + file.absolutePath
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             "error saving data in " + dir.absolutePath
         }
