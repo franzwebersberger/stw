@@ -50,20 +50,18 @@ object STWService {
         }
     }
 
-    fun exportHistory(dir: File): String {
-        return try {
-            val file = File(dir, "fws-stw-" + SimpleDateFormat("yyyyMMdd-HHmmss").format(Date()) + ".csv")
-            file.bufferedWriter().use { out ->
-                out.write("start (timestamp),time (ms)\n")
-                history.forEach {
-                    out.write("${it.start},${it.time}\n")
-                }
+    fun exportHistory(dir: File): String = try {
+        val file = File(dir, "fws-stw-" + SimpleDateFormat("yyyyMMdd-HHmmss").format(Date()) + ".csv")
+        file.bufferedWriter().use { out ->
+            out.write("start (timestamp),time (ms)\n")
+            history.forEach {
+                out.write("${it.start},${it.time}\n")
             }
-            "data saved to " + file.absolutePath
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "error saving data in " + dir.absolutePath
         }
+        "data saved to " + file.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+        "error saving data in " + dir.absolutePath
     }
 
     fun runtime(): Long =

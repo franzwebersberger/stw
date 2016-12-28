@@ -32,8 +32,8 @@ class MainActivity : AppCompatActivity() {
     private val TIMER_UPDATE_DELAY = 10L
 
     private val COLOR_IDLE = Color.argb(0, 0, 0, 0)
-    private val COLOR_READY = Color.argb(128, 255, 100, 0)
-    private val COLOR_RUNNING = Color.argb(100, 255, 255, 0)
+    private val COLOR_READY = Color.argb(128, 0, 255, 0)
+    private val COLOR_RUNNING = Color.argb(128, 255, 0, 0)
 
     private var locked = false
     private var mainButton: Button? = null
@@ -231,7 +231,7 @@ class MainActivity : AppCompatActivity() {
     private fun setLockState(lock: Boolean) {
         this.locked = lock
         Log.i(LOG_TAG, "setLockState")
-        mainButton?.setEnabled(!lock)
+        mainButton?.isEnabled = !lock
         if (lock) {
             mainButton?.setText(R.string.stw_state_locked)
             mainLayout?.bringToFront()
@@ -244,14 +244,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateStats() {
-        mainTextView?.setText(formatTime(STWService.runtime()))
-        countTextView?.setText(formatCount(STWService.currentCount()))
-        rankTextView?.setText(formatRank(STWService.rank()))
-        summaryView?.setText(formatSummary(STWService.summary()))
-        val h = formatHistory(STWService.history)
-        historyView?.setText(h.substring(0..Math.min(h.length - 1, 20000)))
-        val t = formatTop(STWService.top)
-        topView?.setText(t.substring(0..Math.min(t.length - 1, 20000)))
+        mainTextView?.text = formatTime(STWService.runtime())
+        countTextView?.text = formatCount(STWService.currentCount())
+        rankTextView?.text = formatRank(STWService.rank())
+        summaryView?.text = formatSummary(STWService.summary())
+        historyView?.text = formatHistory(STWService.history)
+        topView?.text = formatTop(STWService.top)
     }
 
     private fun formatCount(n: Int) = "$n."
