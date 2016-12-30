@@ -241,15 +241,17 @@ class MainActivity : AppCompatActivity() {
             mainButton?.bringToFront()
             mainButton?.invalidate()
         }
+        statsViewUpdater.obtainMessage().sendToTarget()
     }
 
     private fun updateStats() {
+        val n = if (locked) STWService.currentCount() else 30
         mainTextView?.text = formatTime(STWService.runtime())
         countTextView?.text = formatCount(STWService.currentCount())
         rankTextView?.text = formatRank(STWService.rank())
         summaryView?.text = formatSummary(STWService.summary())
-        historyView?.text = formatHistory(STWService.history)
-        topView?.text = formatTop(STWService.top)
+        historyView?.text = formatHistory(STWService.history, n)
+        topView?.text = formatTop(STWService.top, n)
     }
 
     private fun formatCount(n: Int) = "$n."
@@ -265,17 +267,17 @@ class MainActivity : AppCompatActivity() {
         return sb.toString()
     }
 
-    private fun formatTop(top: Collection<STW>): String {
+    private fun formatTop(top: Collection<STW>, n: Int): String {
         val sb = StringBuilder()
         sb.append(getString(R.string.stw_stats_top)).append("\n")
-        top.forEachIndexed { i, stw -> sb.append(i + 1).append(".\t").append(stw.fmt).append("\n") }
+        top.take(n).forEachIndexed { i, stw -> sb.append(i + 1).append(".\t").append(stw.fmt).append("\n") }
         return sb.toString()
     }
 
-    private fun formatHistory(history: Collection<STW>): String {
+    private fun formatHistory(history: Collection<STW>, n: Int): String {
         val sb = StringBuilder()
         sb.append(getString(R.string.stw_stats_history)).append("\n")
-        history.forEach { stw -> sb.append(stw.fmt).append("\n") }
+        history.take(n).forEach { stw -> sb.append(stw.fmt).append("\n") }
         return sb.toString()
     }
 

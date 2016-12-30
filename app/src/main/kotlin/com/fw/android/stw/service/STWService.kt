@@ -20,6 +20,15 @@ object STWService {
     private val sorted: TreeSet<STW> = TreeSet<STW>()
     val top: Set<STW> = sorted
 
+    init {
+        /*
+        (1 .. 1000).forEachIndexed { i, j ->
+            stws.addFirst(STW(j.toLong(), (100*j).toLong()))
+            sorted.add(stws.first)
+        }
+        */
+    }
+
     fun isRunning() = running
 
     fun currentCount() = if (running) 1 + stws.size else stws.size
