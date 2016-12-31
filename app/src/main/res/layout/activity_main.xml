@@ -74,7 +74,8 @@
             <ScrollView
                 android:layout_width="0dp"
                 android:layout_weight="0.5"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:id="@+id/left_scroll_view">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -95,7 +96,8 @@
             <ScrollView
                 android:layout_width="0dp"
                 android:layout_weight="0.5"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:id="@+id/right_scroll_view">
 
                 <LinearLayout
                     android:layout_width="match_parent"

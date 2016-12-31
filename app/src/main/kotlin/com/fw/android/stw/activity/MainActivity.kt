@@ -11,10 +11,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import com.fw.android.stw.R
 import com.fw.android.stw.activity.MainActivity.ButtonState.*
 import com.fw.android.stw.service.STW
@@ -33,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private val COLOR_IDLE = Color.argb(0, 0, 0, 0)
     private val COLOR_READY = Color.argb(128, 0, 255, 0)
-    private val COLOR_RUNNING = Color.argb(128, 255, 0, 0)
+    private val COLOR_RUNNING = Color.argb(80, 255, 255, 0)
 
     private var locked = false
     private var mainButton: Button? = null
@@ -252,6 +249,8 @@ class MainActivity : AppCompatActivity() {
         summaryView?.text = formatSummary(STWService.summary())
         historyView?.text = formatHistory(STWService.history, n)
         topView?.text = formatTop(STWService.top, n)
+        (findViewById(R.id.left_scroll_view) as ScrollView).scrollTo(0, 0)
+        (findViewById(R.id.right_scroll_view) as ScrollView).scrollTo(0, 0)
     }
 
     private fun formatCount(n: Int) = "$n."
