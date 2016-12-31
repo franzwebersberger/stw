@@ -1,6 +1,7 @@
 package com.fw.android.stw.activity
 
 import android.graphics.Color
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private var summaryView: TextView? = null
     private var topView: TextView? = null
     private var historyView: TextView? = null
+    private var mp: MediaPlayer? = null
 
     private val buttonSTM = StateMachine<ButtonState, Int, View>(
             IDLE,
@@ -56,14 +58,15 @@ class MainActivity : AppCompatActivity() {
                 Log.i(LOG_TAG, "buttonSTM: READY -> RUNNING")
                 STWService.start()
                 startTimer()
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+                playSound(R.raw.s1)
                 mainLayout?.setBackgroundColor(COLOR_RUNNING)
             }),
             T(RUNNING, MotionEvent.ACTION_DOWN, IDLE, { view ->
                 Log.i(LOG_TAG, "buttonSTM: RUNNING -> IDLE")
                 STWService.stop()
                 stopTimer()
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+                //view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
+                playSound(R.raw.s2)
                 mainLayout?.setBackgroundColor(COLOR_IDLE)
                 mainTextView?.text = formatTime(STWService.runtime())
                 countTextView?.text = formatCount(STWService.currentCount())
@@ -71,6 +74,12 @@ class MainActivity : AppCompatActivity() {
                 mainButton?.text = formatTime(STWService.runtime())
                 statsViewUpdater.obtainMessage().sendToTarget()
             }))
+
+    private fun playSound(soundId: Int) {
+        mp?.release()
+        mp = MediaPlayer.create(this, soundId)
+        mp?.start()
+    }
 
     private val mainButtonTouchListener = View.OnTouchListener { v, event ->
         return@OnTouchListener buttonSTM.handleEvent(event.action, v)
