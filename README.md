@@ -15,9 +15,9 @@
  * cln: Code cleanup
  * doc: Documentation
 
-### Issues
- * uxp: colors
- * uxp: sound effects
+### Planned Activities
+ * uxp: find proper colors
+ * uxp: find proper sound effects
  * uxp: implement confirm dialog on reset
  * uxp: find application name
- * uxp: create application icon
+ * uxp: design application icon
