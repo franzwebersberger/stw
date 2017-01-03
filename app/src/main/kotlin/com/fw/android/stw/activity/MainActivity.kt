@@ -21,6 +21,12 @@ import com.fw.android.stw.service.SummaryStatistics
 import com.fw.android.stw.service.formatTime
 import com.fw.generic.api.statemachine.StateMachine
 import com.fw.generic.api.statemachine.StateMachine.T
+import com.jjoe64.graphview.series.LineGraphSeries
+import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.series.BarGraphSeries
+import com.jjoe64.graphview.series.DataPoint
+import java.util.Random
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var topView: TextView? = null
     private var historyView: TextView? = null
     private var mp: MediaPlayer? = null
+    private var graphView: GraphView? = null
 
     private val buttonSTM = StateMachine<ButtonState, Int, View>(
             IDLE,
@@ -65,7 +72,6 @@ class MainActivity : AppCompatActivity() {
                 Log.i(LOG_TAG, "buttonSTM: RUNNING -> IDLE")
                 STWService.stop()
                 stopTimer()
-                //view.playSoundEffect(android.view.SoundEffectConstants.CLICK)
                 playSound(R.raw.s2)
                 mainLayout?.setBackgroundColor(COLOR_IDLE)
                 mainTextView?.text = formatTime(STWService.runtime())
@@ -125,6 +131,7 @@ class MainActivity : AppCompatActivity() {
         summaryView = findViewById(R.id.summaryView) as TextView
         topView = findViewById(R.id.text2) as TextView
         historyView = findViewById(R.id.text3) as TextView
+        graphView = findViewById(R.id.graph) as GraphView
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -256,6 +263,7 @@ class MainActivity : AppCompatActivity() {
         countTextView?.text = formatCount(STWService.currentCount())
         rankTextView?.text = formatRank(STWService.rank())
         summaryView?.text = formatSummary(STWService.summary())
+        drawHistogram(STWService.top)
         historyView?.text = formatHistory(STWService.history, n)
         topView?.text = formatTop(STWService.top, n)
         (findViewById(R.id.left_scroll_view) as ScrollView).scrollTo(0, 0)
@@ -268,11 +276,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun formatSummary(summary: SummaryStatistics): String {
         val sb = StringBuilder()
-        sb.append(getString(R.string.stw_stats_summary)).append("\n")
+        //sb.append(getString(R.string.stw_stats_summary)).append("   ")
         sb.append("n: ").append(summary.n).append("   ")
         sb.append("µ: ").append(formatTime(summary.mean.toLong())).append("   ")
         sb.append("σ: ").append(formatTime(summary.sigma.toLong())).append("   ")
         return sb.toString()
+    }
+
+    private fun drawHistogram(top: Collection<STW>) {
+        val tmin: Double = if (top.isEmpty()) 0.0 else -1.0 + top.first().time/1000
+        val tmax: Double = if (top.isEmpty()) 1.0 else 1.0 + top.last().time/1000
+        val hist = top.map { Math.floor(it.time/1000.0) }.groupBy { it }.map { DataPoint(it.key, it.value.size.toDouble()) }
+
+        Log.i(LOG_TAG, "tmin=$tmin")
+        Log.i(LOG_TAG, "tmax=$tmax")
+        Log.i(LOG_TAG, "hist=$hist")
+
+        val series = BarGraphSeries<DataPoint>(hist.toTypedArray())
+        series.spacing = 10;
+        series.color = Color.LTGRAY
+
+        graphView?.apply {
+            removeAllSeries()
+            addSeries(series)
+            viewport?.apply {
+                isXAxisBoundsManual = true
+                setMinX(tmin)
+                setMaxX(tmax)
+                setMinY(0.0)
+            }
+        }
     }
 
     private fun formatTop(top: Collection<STW>, n: Int): String {

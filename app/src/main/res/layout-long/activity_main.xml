@@ -58,11 +58,16 @@
         <TextView
             android:text="Summary"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:id="@+id/summaryView"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textAlignment="center"
             android:textSize="14sp" />
+
+        <com.jjoe64.graphview.GraphView
+            android:id="@+id/graph"
+            android:layout_width="match_parent"
+            android:layout_height="160dip" />
 
         <LinearLayout
             android:orientation="horizontal"
