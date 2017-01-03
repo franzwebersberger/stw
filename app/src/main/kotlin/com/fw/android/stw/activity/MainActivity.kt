@@ -22,6 +22,7 @@ import com.fw.android.stw.service.formatTime
 import com.fw.generic.api.statemachine.StateMachine
 import com.fw.generic.api.statemachine.StateMachine.T
 import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.LegendRenderer
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 
@@ -291,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                 spacing = 10;
                 color = Color.LTGRAY
             })
-            viewport?.apply {
+            viewport.apply {
                 isXAxisBoundsManual = true
                 isYAxisBoundsManual = true
                 setMinX(tmin)
