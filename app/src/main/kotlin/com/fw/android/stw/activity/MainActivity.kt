@@ -22,7 +22,6 @@ import com.fw.android.stw.service.formatTime
 import com.fw.generic.api.statemachine.StateMachine
 import com.fw.generic.api.statemachine.StateMachine.T
 import com.jjoe64.graphview.GraphView
-import com.jjoe64.graphview.LegendRenderer
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 
@@ -284,22 +283,29 @@ class MainActivity : AppCompatActivity() {
     private fun formatHistogram(top: Collection<STW>) {
         val tmin: Double = if (top.isEmpty()) 0.0 else -1.0 + top.first().time / 1000
         val tmax: Double = if (top.isEmpty()) 1.0 else 1.0 + top.last().time / 1000
-        val hist = top.map { Math.floor(it.time / 1000.0) }.groupBy { it }.map { DataPoint(it.key, it.value.size.toDouble()) }
-        val ymax = hist.map { it.y + 1.0 }.max() ?: 2.0
+        val quants = top.map { Math.floor(it.time / 1000.0) }.groupBy { it }
+
+        val series = (tmin.toInt()..tmax.toInt()).map { ti ->
+            val q = quants.get(ti.toDouble())?.size
+            q?.let { DataPoint(ti + 0.5, q.toDouble()) } ?: DataPoint(ti + 0.5, 0.0)
+        }
+        val ymax = series.map { it.y + 1.0 }.max() ?: 2.0
+
         graphView?.apply {
             removeAllSeries()
-            addSeries(BarGraphSeries<DataPoint>(hist.toTypedArray()).apply {
-                spacing = 10;
-                color = Color.LTGRAY
-            })
             viewport.apply {
                 isXAxisBoundsManual = true
                 isYAxisBoundsManual = true
-                setMinX(tmin)
-                setMaxX(tmax)
+                isScrollable = true
+                setMinX(20.0)
+                setMaxX(40.0)
                 setMinY(0.0)
                 setMaxY(ymax)
             }
+            addSeries(BarGraphSeries<DataPoint>(series.toTypedArray()).apply {
+                spacing = 10;
+                color = Color.LTGRAY
+            })
         }
     }
 
