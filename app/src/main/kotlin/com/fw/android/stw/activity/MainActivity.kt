@@ -34,9 +34,11 @@ class MainActivity : AppCompatActivity() {
     private val COLOR_IDLE = Color.argb(0, 0, 0, 0)
     private val COLOR_READY = Color.argb(128, 0, 255, 0)
     private val COLOR_RUNNING = Color.argb(80, 255, 255, 0)
+    private val COLOR_NORM_BACKGROUND = Color.argb(16, 0, 128, 255)
 
     private val HIST_MINX = 25.0
     private val HIST_WIDTH = 20.0
+    private val HIST_NORM_N = 30
 
     private var locked = false
     private var mainButton: Button? = null
@@ -290,18 +292,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun formatHistogram(summary: SummaryStatistics, top: Collection<STW>) {
-        val tmin: Double = if (top.isEmpty()) 0.0 else -1.0 + top.first().time / 1000
-        val tmax: Double = if (top.isEmpty()) 1.0 else 1.0 + top.last().time / 1000
-        val quants = top.map { Math.floor(it.time / 1000.0) }.groupBy { it }
-
-        val series = (tmin.toInt()..tmax.toInt()).map { ti ->
-            val q = quants.get(ti.toDouble())?.size
-            q?.let { DataPoint(ti + 0.5, q.toDouble()) } ?: DataPoint(ti + 0.5, 0.0)
-        }
-        val ymax = series.map { it.y + 1.0 }.max() ?: 2.0
-
+        val histogram = histSeries(top)
+        val norm = normSeries(summary)
+        val ymax = histogram.map { it.y + 1.0 }.max() ?: 2.0
         graphView?.apply {
-            removeAllSeries()
             viewport.apply {
                 isXAxisBoundsManual = true
                 isYAxisBoundsManual = true
@@ -311,33 +305,47 @@ class MainActivity : AppCompatActivity() {
                 setMinY(0.0)
                 setMaxY(ymax)
             }
-            addSeries(BarGraphSeries<DataPoint>(series.toTypedArray()).apply {
+            removeAllSeries()
+            addSeries(BarGraphSeries(histogram.toTypedArray()).apply {
                 spacing = 10;
                 color = Color.LTGRAY
             })
-        }
-
-        if (top.isNotEmpty()) {
-            val n = 30
-            val mean = summary.mean / 1000
-            val sigma = summary.sigma / 1000
-            val x0 = mean - 3*sigma
-            val x1 = mean + 3*sigma
-            val dx = (x1 - x0)/n
-            val normSeries = (0 .. n).map {
-                val x = x0 + it*dx
-                val y = normPD(summary.n, mean, sigma, x)
-                DataPoint(x, y)
-            }
-            Log.i(LOG_TAG, "norSeries=$normSeries")
-            graphView?.addSeries(LineGraphSeries(normSeries.toTypedArray()).apply { thickness = 2 })
+            addSeries(LineGraphSeries(norm.toTypedArray()).apply {
+                thickness = 1
+                isDrawBackground = true
+                backgroundColor = COLOR_NORM_BACKGROUND
+            })
         }
     }
 
-    private fun normPD(n: Int, mean: Double, sigma: Double, x: Double): Double {
-        val c = if (sigma != 0.0) n * 0.39894228 / sigma else 0.0
-        val t = if (sigma != 0.0) (x - mean) / sigma else 0.0
-        return c * Math.exp(-0.5 * t * t)
+    private fun histSeries(top: Collection<STW>): List<DataPoint> {
+        val tmin: Double = if (top.isEmpty()) 0.0 else -1.0 + top.first().time / 1000
+        val tmax: Double = if (top.isEmpty()) 1.0 else 1.0 + top.last().time / 1000
+        val quants = top.map { Math.floor(it.time / 1000.0) }.groupBy { it }
+        return (tmin.toInt()..tmax.toInt()).map { ti ->
+            val q = quants.get(ti.toDouble())?.size
+            q?.let { DataPoint(ti + 0.5, q.toDouble()) } ?: DataPoint(ti + 0.5, 0.0)
+        }
+    }
+
+    private fun normSeries(summary: SummaryStatistics): List<DataPoint> {
+        fun normPD(n: Int, mean: Double, sigma: Double, x: Double): Double {
+            val c = if (sigma != 0.0) n * 0.39894228 / sigma else 0.0
+            val t = if (sigma != 0.0) (x - mean) / sigma else 0.0
+            return c * Math.exp(-0.5 * t * t)
+        }
+        val mean = summary.mean / 1000
+        val sigma = summary.sigma / 1000
+        val x0 = mean - 3 * sigma
+        val dx = 6 * sigma / HIST_NORM_N
+        return if (summary.n > 1) (0..HIST_NORM_N).map {
+            val x = x0 + it * dx
+            val y = normPD(summary.n, mean, sigma, x)
+            DataPoint(x, y)
+        }
+        else {
+            emptyList()
+        }
     }
 
     private fun formatTop(top: Collection<STW>, n: Int): String {

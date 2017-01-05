@@ -16,8 +16,9 @@
  * doc: Documentation
 
 ### Planned Activities
- * uxp: find proper colors
- * uxp: find proper sound effects
- * uxp: implement confirm dialog on reset
- * uxp: find application name
- * uxp: design application icon
+ * fet: manual histogram config
+ * uxp: colors
+ * uxp: sound effects
+ * uxp: confirm dialog on reset
+ * uxp: application name
+ * uxp: application icon
