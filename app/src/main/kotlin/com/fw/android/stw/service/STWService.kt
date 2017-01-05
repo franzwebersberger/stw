@@ -29,6 +29,14 @@ object STWService {
         */
     }
 
+    fun initWithTestData(testData: TestData) {
+        reset()
+        testData.forEach { stw ->
+            stws.add(stw)
+            sorted.add(stw)
+        }
+    }
+
     fun isRunning() = running
 
     fun currentCount() = if (running) 1 + stws.size else stws.size

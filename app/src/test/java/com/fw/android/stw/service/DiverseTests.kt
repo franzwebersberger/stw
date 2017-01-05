@@ -13,4 +13,18 @@ class DiverseTests {
         val u = t.take(5)
         println("u=$u")
     }
+
+    @Test
+    fun test2() {
+        val td = TestData
+        println("td=$td")
+    }
+
+    @Test
+    fun test3() {
+        (0 .. 10).forEach {
+            println(it)
+        }
+    }
+
 }

@@ -13,9 +13,13 @@
         android:enabled="true" />
     <item android:title="Export Data"
         android:id="@+id/export" />
+    <item android:title="Testdata"
+          android:id="@+id/test_data"
+          android:visible="true"
+          android:enabled="true"/>
     <item android:title="Reset"
-        android:id="@+id/reset"
-        android:checkable="false"
-        android:visible="true"
-        android:enabled="true" />
+          android:id="@+id/reset"
+          android:checkable="false"
+          android:visible="true"
+          android:enabled="true" />
 </menu>

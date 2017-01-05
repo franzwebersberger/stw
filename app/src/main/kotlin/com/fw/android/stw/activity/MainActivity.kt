@@ -15,15 +15,13 @@ import android.view.View
 import android.widget.*
 import com.fw.android.stw.R
 import com.fw.android.stw.activity.MainActivity.ButtonState.*
-import com.fw.android.stw.service.STW
-import com.fw.android.stw.service.STWService
-import com.fw.android.stw.service.SummaryStatistics
-import com.fw.android.stw.service.formatTime
+import com.fw.android.stw.service.*
 import com.fw.generic.api.statemachine.StateMachine
 import com.fw.generic.api.statemachine.StateMachine.T
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,6 +34,9 @@ class MainActivity : AppCompatActivity() {
     private val COLOR_IDLE = Color.argb(0, 0, 0, 0)
     private val COLOR_READY = Color.argb(128, 0, 255, 0)
     private val COLOR_RUNNING = Color.argb(80, 255, 255, 0)
+
+    private val HIST_MINX = 25.0
+    private val HIST_WIDTH = 20.0
 
     private var locked = false
     private var mainButton: Button? = null
@@ -148,6 +149,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         Log.i(LOG_TAG, "onOptionsItemSelected")
         when (item.itemId) {
+            R.id.test_data -> return testData()
             R.id.export -> return exportData()
             R.id.reset -> return reset()
             R.id.drop -> return dropLast()
@@ -255,15 +257,22 @@ class MainActivity : AppCompatActivity() {
         statsViewUpdater.obtainMessage().sendToTarget()
     }
 
+    private fun testData(): Boolean {
+        STWService.initWithTestData(TestData)
+        updateStats()
+        return true
+    }
+
     private fun updateStats() {
         val n = if (locked) STWService.currentCount() else 30
+        val summary = STWService.summary()
         mainTextView?.text = formatTime(STWService.runtime())
         countTextView?.text = formatCount(STWService.currentCount())
         rankTextView?.text = formatRank(STWService.rank())
-        summaryView?.text = formatSummary(STWService.summary())
+        summaryView?.text = formatSummary(summary)
         historyView?.text = formatHistory(STWService.history, n)
         topView?.text = formatTop(STWService.top, n)
-        formatHistogram(STWService.top)
+        formatHistogram(summary, STWService.top)
         (findViewById(R.id.left_scroll_view) as ScrollView).scrollTo(0, 0)
         (findViewById(R.id.right_scroll_view) as ScrollView).scrollTo(0, 0)
     }
@@ -280,7 +289,7 @@ class MainActivity : AppCompatActivity() {
         return sb.toString()
     }
 
-    private fun formatHistogram(top: Collection<STW>) {
+    private fun formatHistogram(summary: SummaryStatistics, top: Collection<STW>) {
         val tmin: Double = if (top.isEmpty()) 0.0 else -1.0 + top.first().time / 1000
         val tmax: Double = if (top.isEmpty()) 1.0 else 1.0 + top.last().time / 1000
         val quants = top.map { Math.floor(it.time / 1000.0) }.groupBy { it }
@@ -297,8 +306,8 @@ class MainActivity : AppCompatActivity() {
                 isXAxisBoundsManual = true
                 isYAxisBoundsManual = true
                 isScrollable = true
-                setMinX(20.0)
-                setMaxX(40.0)
+                setMinX(HIST_MINX)
+                setMaxX(HIST_MINX + HIST_WIDTH)
                 setMinY(0.0)
                 setMaxY(ymax)
             }
@@ -307,6 +316,28 @@ class MainActivity : AppCompatActivity() {
                 color = Color.LTGRAY
             })
         }
+
+        if (top.isNotEmpty()) {
+            val n = 30
+            val mean = summary.mean / 1000
+            val sigma = summary.sigma / 1000
+            val x0 = mean - 3*sigma
+            val x1 = mean + 3*sigma
+            val dx = (x1 - x0)/n
+            val normSeries = (0 .. n).map {
+                val x = x0 + it*dx
+                val y = normPD(summary.n, mean, sigma, x)
+                DataPoint(x, y)
+            }
+            Log.i(LOG_TAG, "norSeries=$normSeries")
+            graphView?.addSeries(LineGraphSeries(normSeries.toTypedArray()).apply { thickness = 2 })
+        }
+    }
+
+    private fun normPD(n: Int, mean: Double, sigma: Double, x: Double): Double {
+        val c = if (sigma != 0.0) n * 0.39894228 / sigma else 0.0
+        val t = if (sigma != 0.0) (x - mean) / sigma else 0.0
+        return c * Math.exp(-0.5 * t * t)
     }
 
     private fun formatTop(top: Collection<STW>, n: Int): String {
