@@ -8,10 +8,7 @@ import android.os.Handler
 import android.os.Message
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import android.widget.*
 import com.fw.android.stw.R
 import com.fw.android.stw.activity.MainActivity.ButtonState.*
@@ -210,10 +207,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun startTimer() {
         mainTextViewUpdater.postDelayed(timerRefresher, TIMER_UPDATE_DELAY)
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun stopTimer() {
         mainTextViewUpdater.removeCallbacks(timerRefresher)
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun dropLast(): Boolean {
